@@ -348,3 +348,23 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
+Test.dSYM/Contents/Info.plist
+Test.dSYM/Contents/Resources/DWARF/Test
+TestCounter.dSYM/Contents/Info.plist
+TestCounter.dSYM/Contents/Resources/DWARF/TestCounter
+TestCounter
+Test.o
+test
+TestCounter.o
+Demo.dSYM/Contents/Info.plist
+Demo.dSYM/Contents/Resources/DWARF/Demo
+objects/BinaryTree.o
+sources/BinaryTree
+grade_utils
+grade
+Demo.o
+demo
