@@ -113,7 +113,7 @@ namespace ariel
                     this->p_to_cur = this->v.front();
                 }
             }
-            virtual in_iterator &operator++()
+            in_iterator &operator++()
             {
                 if (this->p_to_cur == nullptr)
                 {
@@ -176,16 +176,30 @@ namespace ariel
                     this->p_to_cur = this->v.front();
                 }
             }
-            using in_iterator::operator++;
-            // using in_iterator::operator++(int);
-            // post_iterator& operator++(){
-            //     auto res = in_iterator::operator++();
-            //     return *this;
-            // }
-            // post_iterator& operator++(int){
-            //     auto res = this++;
-            //     return *this;
-            // }
+            post_iterator& operator++(){
+                if (this->p_to_cur == nullptr)
+                {
+
+                    throw std::out_of_range("out of range");
+                }
+
+                auto pp = this->v.erase(this->v.begin());
+                if (pp == this->v.end())
+                {
+                    this->p_to_cur = nullptr;
+                }
+                else
+                {
+                    this->p_to_cur = *pp;
+                }
+                return *this;
+            }
+            post_iterator &operator++(int)
+            {
+                in_iterator res{*this};
+                ++(*this);
+                return res;
+            }
         };
 
         pre_iterator begin_preorder() const
@@ -247,17 +261,17 @@ namespace ariel
         {
             auto it = this->begin_preorder();
             auto end = this->end_preorder();
-            while (it != end && it->value != value)
+            while (it != end && *it != value)
             {
-                if (it->value == parent)
+                if (*it == parent)
                 {
-                    if (it->left == nullptr)
+                    if (it.p_to_cur->left == nullptr)
                     {
-                        it->left = new Node<T>{it->pointer(), nullptr, nullptr, value};
+                        it.p_to_cur->left = new Node<T>{it.p_to_cur, nullptr, nullptr, value};
                     }
                     else
                     {
-                        it->left->value = value;
+                        it.p_to_cur->left->value = value;
                     }
                     return *this;
                 }
@@ -274,15 +288,15 @@ namespace ariel
             auto end = this->end_preorder();
             while (it != end)
             {
-                if (it->value == parent)
+                if (*it == parent)
                 {
-                    if (it->right == nullptr)
+                    if (it.p_to_cur->right == nullptr)
                     {
-                        it->right = new Node<T>{it->pointer(), nullptr, nullptr, value};
+                        it.p_to_cur->right = new Node<T>{it.p_to_cur, nullptr, nullptr, value};
                     }
                     else
                     {
-                        it->right->value = value;
+                        it.p_to_cur->right->value = value;
                     }
                     return *this;
                 }

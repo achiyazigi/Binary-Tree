@@ -11,10 +11,7 @@ namespace ariel
         T value;
 
         Node(Node *father = nullptr, Node *left = nullptr, Node *right = nullptr, T value = 0) : father(father), left(left), right(right), value(value) {}
-        Node* pointer(){
-            return this;
-        }
-        int size(){return 1;}
+       
     };
 
     //-------------------------------------------------------------------
@@ -39,9 +36,9 @@ namespace ariel
             return p_to_cur->value;
         }
 
-        Node<T> *operator->() const
+        T *operator->() const
         {
-            return p_to_cur;
+            return &(p_to_cur->value);
         }
 
         // virtual TreeIterator &operator++();
