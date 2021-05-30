@@ -1,9 +1,6 @@
 #include <iostream>
-#include <vector>
-#include <cmath>
 #include <iterator>
-#include "TreeIterator.hpp"
-#include <stack>
+#include <vector>
 
 namespace ariel
 {
@@ -13,9 +10,20 @@ namespace ariel
     {
 
     private:
-        Node<T> *root = nullptr;
+        struct Node
+        {
+            Node *left;
+            Node *right;
+            T value;
+            Node(T value, Node *left = nullptr, Node *right = nullptr) : value(value), left(left), right(right) {}
+        };
+        typename std::vector<T *> pre_list;
+        typename std::vector<T *> in_list;
+        typename std::vector<T *> post_list;
+        size_t _size = 0;
+        Node *root;
 
-        void print_vector_as_tree_recursive(std::ostream &out, Node<T> *root = 0, std::string prefix = "") const
+        void print_vector_as_tree_recursive(std::ostream &out, Node *root = 0, std::string prefix = "") const
         {
             if (root == nullptr)
                 return;
@@ -25,284 +33,228 @@ namespace ariel
             print_vector_as_tree_recursive(out, root->right, prefix + "--");
         }
 
-    public:
-        //-------------------------------------------------------------------
-        // pre_iterator related code:
-        // inner class and methods that return instances of it)
-        //-------------------------------------------------------------------
-        class pre_iterator : public TreeIterator<T>
+        Node *find(Node *n, const T value) const
         {
-        private:
-            std::stack<Node<T> *> s;
-
-        public:
-            using TreeIterator<T>::TreeIterator;
-            pre_iterator &operator++()
+            if (n == nullptr)
             {
-                if (this->p_to_cur == nullptr)
-                {
-
-                    throw std::out_of_range("out of range");
-                }
-                else
-                {
-                    if (this->p_to_cur->right != nullptr)
-                    {
-                        s.push(this->p_to_cur->right);
-                    }
-                    if (this->p_to_cur->left != nullptr)
-                    {
-                        this->p_to_cur = this->p_to_cur->left;
-                    }
-                    else if (!s.empty())
-                    {
-                        this->p_to_cur = s.top();
-                        s.pop();
-                    }
-                    else
-                    {
-                        this->p_to_cur = nullptr;
-                    }
-                }
-                return *this;
+                return nullptr;
             }
-
-            pre_iterator &operator++(int)
+            if (n->value == value)
             {
-                pre_iterator res = *this;
-                *this ++;
-                return res;
+                return n;
             }
-
-        }; // END OF CLASS pre_ITERATOR
-        class in_iterator : public TreeIterator<T>
-        {
-        public:
-            std::vector<Node<T> *> v;
-
-        private:
-            virtual void recursive_init(Node<T> *n)
+            Node *res_left = this->find(n->left, value);
+            if (res_left != nullptr)
             {
-
-                if (n != nullptr)
-                {
-                    auto index = std::find(this->v.begin(), this->v.end(), n);
-                    if (n->left != nullptr)
-                    {
-
-                        v.insert(index, n->left);
-                    }
-                    index = std::find(this->v.begin(), this->v.end(), n);
-                    if (n->right != nullptr)
-                    {
-                        v.insert(++index, n->right);
-                    }
-                    recursive_init(n->left);
-                    recursive_init(n->right);
-                }
+                return res_left;
             }
-
-        public:
-            in_iterator(Node<T> *ptr) : TreeIterator<T>(ptr)
-            {
-                if (ptr != nullptr)
-                {
-                    this->v.resize(1);
-                    this->v.front() = ptr;
-                    this->recursive_init(ptr);
-                    this->p_to_cur = this->v.front();
-                }
-            }
-            in_iterator &operator++()
-            {
-                if (this->p_to_cur == nullptr)
-                {
-
-                    throw std::out_of_range("out of range");
-                }
-
-                auto pp = this->v.erase(this->v.begin());
-                if (pp == this->v.end())
-                {
-                    this->p_to_cur = nullptr;
-                }
-                else
-                {
-                    this->p_to_cur = *pp;
-                }
-                return *this;
-            }
-
-            in_iterator &operator++(int)
-            {
-                in_iterator res{*this};
-                ++(*this);
-                return res;
-            }
-
-        }; // END OF CLASS in_ITERATOR
-
-        class post_iterator : public in_iterator
-        {
-        private:
-            void recursive_init(Node<T> *n) override
-            {
-                if (n != nullptr)
-                {
-                    auto index = std::find(this->v.begin(), this->v.end(), n);
-                    if (n->left != nullptr)
-                    {
-
-                        this->v.insert(index, n->left);
-                    }
-                    index = std::find(this->v.begin(), this->v.end(), n);
-                    if (n->right != nullptr)
-                    {
-                        this->v.insert(index, n->right);
-                    }
-                    recursive_init(n->left);
-                    recursive_init(n->right);
-                }
-            }
-
-        public:
-            post_iterator(Node<T> *ptr = nullptr) : in_iterator(nullptr)
-            {
-                if (ptr != nullptr)
-                {
-                    this->v.resize(1);
-                    this->v.front() = ptr;
-                    this->recursive_init(ptr);
-                    this->p_to_cur = this->v.front();
-                }
-            }
-            post_iterator& operator++(){
-                if (this->p_to_cur == nullptr)
-                {
-
-                    throw std::out_of_range("out of range");
-                }
-
-                auto pp = this->v.erase(this->v.begin());
-                if (pp == this->v.end())
-                {
-                    this->p_to_cur = nullptr;
-                }
-                else
-                {
-                    this->p_to_cur = *pp;
-                }
-                return *this;
-            }
-            post_iterator &operator++(int)
-            {
-                in_iterator res{*this};
-                ++(*this);
-                return res;
-            }
-        };
-
-        pre_iterator begin_preorder() const
-        {
-            return pre_iterator{root};
+            return find(n->right, value);
         }
 
-        pre_iterator end_preorder() const
+        class iterator
         {
-            return pre_iterator{nullptr};
+            unsigned long index;
+            typename std::vector<T *> *order;
+
+        public:
+            iterator(unsigned long root, std::vector<T *> *order) : index(root), order(order)
+            {
+            }
+            iterator &operator++()
+            {
+                ++(this->index);
+                return *this;
+            }
+
+            iterator &operator++(int)
+            {
+                iterator res = *this;
+                ++(*this);
+                return res;
+            }
+
+            T &operator*()
+            {
+                return *(this->order->at(this->index));
+            }
+
+            T *operator->()
+            {
+                return this->order->at(index);
+            }
+
+            bool operator!=(const iterator &other)
+            {
+                return this->index != other.index;
+            }
+
+            // bool operator!=(const iterator &other)
+            // {
+            //     return !(*this == other);
+            // }
+
+        }; // END OF CLASS ITERATOR
+
+        void init_postorder(const Node *n)
+        {
+            if (n != nullptr)
+            {
+
+                auto it = std::find(this->post_list.begin(), this->post_list.end(), &(n->value));
+                if (n->right != nullptr)
+                {
+                    it = this->post_list.insert(it, &(n->right->value));
+                }
+                if (n->left != nullptr)
+                {
+                    it = this->post_list.insert(it, &(n->left->value));
+                }
+                init_postorder(n->left);
+                init_postorder(n->right);
+            }
+        }
+        void init_preorder(const Node *n)
+        {
+            if (n != nullptr)
+            {
+                auto it = std::find(this->pre_list.begin(), this->pre_list.end(), &(n->value));
+                ++it;
+                if (n->right != nullptr)
+                {
+
+                    it = this->pre_list.insert(it, &(n->right->value));
+                }
+                if (n->left != nullptr)
+                {
+                    this->pre_list.insert(it, &(n->left->value));
+                }
+                init_preorder(n->left);
+                init_preorder(n->right);
+            }
+        }
+        void init_inorder(const Node *n)
+        {
+            if (n != nullptr)
+            {
+                auto it = std::find(this->in_list.begin(), this->in_list.end(), &(n->value));
+                if (n->left != nullptr)
+                {
+                    it = this->in_list.insert(it, &(n->left->value));
+                    ++it;
+                }
+                if (n->right != nullptr)
+                {
+
+                    this->in_list.insert(++it, &(n->right->value));
+                }
+                init_inorder(n->left);
+                init_inorder(n->right);
+            }
+        }
+
+    public:
+        size_t size() const
+        {
+            return this->_size;
+        }
+        iterator begin_preorder()
+        {
+            this->pre_list.resize(this->size());
+            this->pre_list.clear();
+            this->pre_list.push_back(&(this->root->value));
+            init_preorder(this->root);
+            return iterator{0, &(this->pre_list)};
+        }
+
+        iterator end_preorder()
+        {
+            return iterator{this->pre_list.size(), &(this->pre_list)};
         }
 
         //in order
-        in_iterator begin_inorder()
+        iterator begin_inorder()
         {
-            return in_iterator{root};
+            this->in_list.resize(this->size());
+
+            this->in_list.clear();
+            this->in_list.push_back(&(this->root->value));
+            init_inorder(this->root);
+            return iterator{0, &(this->in_list)};
         }
 
-        in_iterator end_inorder()
+        iterator end_inorder()
         {
-            return in_iterator{nullptr};
+            return iterator{this->in_list.size(), &(this->in_list)};
         }
 
-        in_iterator begin()
+        iterator begin()
         {
             return this->begin_inorder();
         }
 
-        in_iterator end()
+        iterator end()
         {
             return this->end_inorder();
         }
 
-        post_iterator begin_postorder()
+        iterator begin_postorder()
         {
-            return post_iterator{root};
+            this->post_list.resize(this->size());
+
+            this->post_list.clear();
+            this->post_list.push_back(&(this->root->value));
+            init_postorder(this->root);
+            return iterator{0, &(this->post_list)};
         }
 
-        post_iterator end_postorder()
+        iterator end_postorder()
         {
-            return post_iterator{nullptr};
+            return iterator{this->post_list.size(), &(this->post_list)};
         }
 
-        BinaryTree() = default;
+        // BinaryTree() = default;
         BinaryTree &add_root(const T &value)
         {
-            if (root == nullptr)
-            {
-                root = new Node<T>{nullptr, nullptr, nullptr, value};
-            }
-            else
-            {
-
-                root->value = value;
-            }
+            this->root = new Node(value);
             return *this;
         }
         BinaryTree &add_left(const T &parent, const T &value)
         {
-            auto it = this->begin_preorder();
-            auto end = this->end_preorder();
-            while (it != end && *it != value)
+            Node *parent_found = this->find((this->root), parent);
+            if (parent_found == nullptr)
             {
-                if (*it == parent)
-                {
-                    if (it.p_to_cur->left == nullptr)
-                    {
-                        it.p_to_cur->left = new Node<T>{it.p_to_cur, nullptr, nullptr, value};
-                    }
-                    else
-                    {
-                        it.p_to_cur->left->value = value;
-                    }
-                    return *this;
-                }
-                ++it;
+                throw std::out_of_range("no such parent");
             }
-            throw std::out_of_range("");
-
+            else
+            {
+                if (parent_found->left == nullptr)
+                {
+                    parent_found->left = new Node{value};
+                    ++this->_size;
+                }
+                else
+                    (parent_found->left->value = value);
+            }
             return *this;
         }
         BinaryTree &add_right(const T &parent, const T &value)
         {
 
-            auto it = this->begin_preorder();
-            auto end = this->end_preorder();
-            while (it != end)
+            Node *parent_found = this->find(this->root, parent);
+            if (parent_found == nullptr)
             {
-                if (*it == parent)
-                {
-                    if (it.p_to_cur->right == nullptr)
-                    {
-                        it.p_to_cur->right = new Node<T>{it.p_to_cur, nullptr, nullptr, value};
-                    }
-                    else
-                    {
-                        it.p_to_cur->right->value = value;
-                    }
-                    return *this;
-                }
-                ++it;
+                throw std::out_of_range("no such parent");
             }
-            throw std::out_of_range("");
+            else
+            {
+                if (parent_found->right == nullptr)
+                {
+                    parent_found->right = new Node{value};
+                    ++this->_size;
+                }
+                else
+                    (parent_found->right->value = value);
+            }
             return *this;
         }
 

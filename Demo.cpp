@@ -11,7 +11,7 @@
 #include <stdexcept>
 using namespace std;
 
-#include "sources/BinaryTree.hpp"
+#include "BinaryTree.hpp"
 using namespace ariel;
 
 int main()
