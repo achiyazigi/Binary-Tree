@@ -375,3 +375,10 @@ StudentTest3.cpp
 TestRunner.o
 .DS_Store
 .DS_Store
+test1
+test2
+.DS_Store
+StudentTest1.o
+StudentTest3.o
+StudentTest2.o
+test3
