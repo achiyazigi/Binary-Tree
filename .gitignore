@@ -368,3 +368,10 @@ grade_utils
 grade
 Demo.o
 demo
+.DS_Store
+StudentTest1.cpp
+StudentTest2.cpp
+StudentTest3.cpp
+TestRunner.o
+.DS_Store
+.DS_Store

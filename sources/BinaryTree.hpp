@@ -33,7 +33,7 @@ namespace ariel
             print_vector_as_tree_recursive(out, root->right, prefix + "--");
         }
 
-        Node *find(Node *n, const T value) const
+        Node *find(Node *n, const T& value) const
         {
             if (n == nullptr)
             {
@@ -83,7 +83,7 @@ namespace ariel
                 return this->order->at(index);
             }
 
-            bool operator!=(const iterator &other)
+            bool operator!=(const iterator &other) const
             {
                 return this->index != other.index;
             }
